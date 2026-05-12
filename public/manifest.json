@@ -1,0 +1,16 @@
+{
+  "name": "Peppertree Directory",
+  "short_name": "Peppertree",
+  "description": "Resident Document Portal for Peppertree Crossing",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdfaf0",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "/peppertree-bg.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    }
+  ]
+}

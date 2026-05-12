@@ -1,134 +1,125 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase"; 
+import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [isWiping, setIsWiping] = useState(false); 
+export default function Dashboard() {
+  const [files, setFiles] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    setIsWiping(true);
-  }, []);
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.push("/"); return; }
+      if (session.user.email === "vtbigdog@gmail.com") { setIsAdmin(true); }
+      fetchFiles();
+    };
+    checkUser();
+  }, [router]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setErrorMsg(""); 
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+  const fetchFiles = async () => {
+    const { data } = await supabase.storage.from("peppertree-files").list("", {
+      sortBy: { column: "name", order: "asc" },
     });
+    if (data) setFiles(data);
+    setLoading(false);
+  };
 
-    if (error) {
-      setErrorMsg("Incorrect password or email. Please try again.");
-    } else if (data.user) {
-      router.push("/dashboard");
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const { error } = await supabase.storage.from("peppertree-files").upload(file.name, file);
+    if (error) { alert("Upload failed: " + error.message); } else { fetchFiles(); }
+    setUploading(false);
+  };
+
+  const handleView = async (fileName) => {
+    const { data } = await supabase.storage.from("peppertree-files").createSignedUrl(fileName, 60); 
+    if (data) window.open(data.signedUrl, "_blank");
+  };
+
+  const handleDownload = async (fileName) => {
+    const { data } = await supabase.storage.from("peppertree-files").download(fileName);
+    if (data) {
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
   };
 
+  const handleDelete = async (fileName) => {
+    if (!window.confirm(`Delete ${fileName}?`)) return;
+    const { error } = await supabase.storage.from("peppertree-files").remove([fileName]);
+    if (!error) fetchFiles();
+  };
+
+  if (loading) return <div className="min-h-screen bg-stone-100 flex justify-center items-center font-cinzel">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col justify-center items-center p-4">
-      <div
-        className={`max-w-md w-full bg-white rounded-xl shadow-2xl p-10 border border-stone-200 transition-all duration-1000 ease-out overflow-hidden ${
-          isWiping ? "max-height-wipe-in" : "max-height-0"
-        }`}
-      >
-        {/* Main Title Section mimicking the new logo layout */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl text-slate-800 font-cinzel font-bold tracking-widest border-b-2 border-slate-200 pb-2 mb-2">
-             PEPPERTREE
-          </h1>
-          <h2 className="text-xl text-slate-600 font-cinzel tracking-[0.5em]">
-           CROSSING
-          </h2>
+    // bg-fixed ensures the background stays put while the list scrolls!
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed flex flex-col items-center p-4 md:p-10"
+      style={{ backgroundImage: "url('/peppertree-bg.jpg')" }}
+    >
+      <div className="max-w-4xl w-full bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-stone-200 overflow-hidden mb-10">
+        
+        {/* Header - Made responsive for mobile */}
+        <div className="bg-slate-800 p-6 md:p-8 flex flex-col md:flex-row justify-between items-center text-white gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl font-cinzel tracking-widest">PEPPERTREE</h1>
+            <p className="text-slate-300 font-cinzel text-sm tracking-[0.3em]">CROSSING DIRECTORY</p>
+          </div>
+          <button onClick={() => {supabase.auth.signOut(); router.push("/");}} className="bg-slate-600 hover:bg-slate-500 px-6 py-2 rounded text-sm font-cinzel tracking-widest transition">
+            Log Out
+          </button>
         </div>
 
-        <p className="text-stone-500 text-center mb-10 text-lg font-serif italic">
-          Resident Document Portal
-        </p>
-
-        {errorMsg && (
-          <div className="bg-rose-50 border-l-4 border-rose-400 text-rose-800 p-5 mb-8 rounded-r shadow-inner">
-            {errorMsg}
+        {isAdmin && (
+          <div className="bg-stone-100 p-6 border-b flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="font-cinzel text-slate-700 font-bold">ADMIN PANEL</span>
+            <label className="bg-blue-700 hover:bg-blue-800 text-white font-cinzel py-3 px-8 rounded shadow cursor-pointer transition text-center w-full sm:w-auto">
+              {uploading ? "Uploading..." : "Upload New File"}
+              <input type="file" accept=".pdf, .jpg, .jpeg, .png" className="hidden" onChange={handleUpload} disabled={uploading} />
+            </label>
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-slate-700 font-semibold mb-2 text-sm uppercase tracking-widest font-cinzel">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-stone-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-400 text-black bg-white transition"
-              placeholder="residents@peppertree.com"
-              required
-            />
-          </div>
+        <div className="p-4 md:p-8">
+          <h2 className="text-xl font-cinzel font-bold text-slate-700 mb-6 border-b pb-2 tracking-widest">DOCUMENTS</h2>
+          
+          <div className="space-y-4">
+            {files.map((file) => (
+              file.name !== ".emptyFolderPlaceholder" && (
+                <div key={file.name} className="flex flex-col md:flex-row justify-between items-center p-4 bg-white border border-stone-200 rounded-lg shadow-sm gap-4">
+                  <div className="flex items-center space-x-3 w-full md:w-auto">
+                    <svg className="w-6 h-6 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span className="text-lg text-slate-800 font-medium truncate">{file.name}</span>
+                  </div>
 
-          <div>
-            <label className="block text-slate-700 font-semibold mb-2 text-sm uppercase tracking-widest font-cinzel">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-stone-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-400 text-black bg-white transition"
-              placeholder="••••••••"
-              required
-            />
+                  <div className="flex w-full md:w-auto gap-2">
+                    <button onClick={() => handleView(file.name)} className="flex-1 md:flex-none bg-slate-700 text-white px-4 py-2 rounded font-cinzel text-xs tracking-widest">View</button>
+                    <button onClick={() => handleDownload(file.name)} className="flex-1 md:flex-none bg-stone-200 text-slate-800 px-4 py-2 rounded font-cinzel text-xs tracking-widest">Save</button>
+                    {isAdmin && <button onClick={() => handleDelete(file.name)} className="bg-rose-100 text-rose-700 px-4 py-2 rounded font-cinzel text-xs tracking-widest">Delete</button>}
+                  </div>
+                </div>
+              )
+            ))}
           </div>
-
-          <button
-            type="submit"
-            className="w-full bg-slate-800 hover:bg-slate-900 text-white font-cinzel tracking-widest py-4 rounded shadow-lg transition-all duration-300 transform hover:-translate-y-1"
-          >
-            Log In
-          </button>
-        </form>
+        </div>
       </div>
 
       <style jsx global>{`
-        /* Importing Pinyon Script and Cinzel */
-        @import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Cinzel:wght@400;700&display=swap');
-
-        .font-pinyon {
-          font-family: 'Pinyon Script', cursive;
-        }
-
-        .font-cinzel {
-          font-family: 'Cinzel', serif;
-        }
-
-        .max-height-0 {
-          max-height: 0;
-          opacity: 0;
-        }
-
-        .max-height-wipe-in {
-          animation: verticalWipeIn 1.2s ease-out forwards;
-        }
-
-        @keyframes verticalWipeIn {
-          0% {
-            max-height: 0;
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          100% {
-            max-height: 800px;
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+        .font-cinzel {{ font-family: 'Cinzel', serif; }}
       `}</style>
     </div>
   );
