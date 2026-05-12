@@ -32,7 +32,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col justify-center items-center p-4">
+    <div 
+  className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center p-4"
+  style={{ backgroundImage: "url('/peppertree-bg.jpg')" }}
+>
       <div
         className={`max-w-md w-full bg-white rounded-xl shadow-2xl p-10 border border-stone-200 transition-all duration-1000 ease-out overflow-hidden ${
           isWiping ? "max-height-wipe-in" : "max-height-0"
