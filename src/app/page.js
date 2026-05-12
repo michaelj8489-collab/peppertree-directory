@@ -25,108 +25,87 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setErrorMsg("Incorrect password or email. Please try again.");
+      setErrorMsg("Invalid credentials. Please try again.");
     } else if (data.user) {
       router.push("/dashboard");
     }
   };
 
   return (
+    // Background: Your Jekyll Oak photo
     <div 
-  className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center p-4"
-  style={{ backgroundImage: "url('/peppertree-bg.jpg')" }}
->
+      className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center p-4"
+      style={{ backgroundImage: "url('/jekyll-oak.jpg')" }}
+    >
+      {/* The Login Card: Set to that classic Canva Cream color */}
       <div
-        className={`max-w-md w-full bg-white rounded-xl shadow-2xl p-10 border border-stone-200 transition-all duration-1000 ease-out overflow-hidden ${
-          isWiping ? "max-height-wipe-in" : "max-height-0"
+        className={`max-w-md w-full bg-[#fdfaf0] rounded-2xl shadow-2xl border border-stone-300 transition-all duration-1000 ease-out overflow-hidden ${
+          isWiping ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        {/* Main Title using Luxurious Roman */}
-        <h1 className="text-5xl text-center text-slate-800 mb-4 font-luxurious tracking-wide">
-          Peppertree Directory
-        </h1>
+        {/* Your Canva Logo at the top of the box */}
+        <div className="w-full">
+          <img 
+            src="/peppertree-logo.jpg" 
+            alt="Peppertree Crossing" 
+            className="w-full h-auto object-cover border-b border-stone-200"
+          />
+        </div>
 
-        {/* Subtitle using Playfair Display */}
-        <p className="text-stone-600 text-center mb-10 text-xl font-playfair italic">
-          Welcome to your community. Log in to access shared documents.
-        </p>
+        <div className="p-8 md:p-10">
+          <p className="text-stone-500 text-center mb-8 text-sm uppercase tracking-[0.3em] font-cinzel">
+            Resident Portal
+          </p>
 
-        {errorMsg && (
-          <div className="bg-rose-50 border-l-4 border-rose-400 text-rose-800 p-5 mb-8 rounded-r shadow-inner">
-            {errorMsg}
-          </div>
-        )}
+          {errorMsg && (
+            <div className="bg-rose-50 border-l-4 border-rose-400 text-rose-800 p-4 mb-6 rounded shadow-inner text-sm font-sans">
+              {errorMsg}
+            </div>
+          )}
 
-        <form onSubmit={handleLogin} className="space-y-7">
-          <div>
-            <label className="block text-slate-700 font-semibold mb-3 text-lg font-playfair">
-              Community Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-5 py-4 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 text-lg text-black bg-white transition duration-300"
-              placeholder="residents@peppertree.com"
-              required
-            />
-          </div>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-slate-800 font-bold mb-2 text-xs uppercase tracking-widest font-cinzel">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-400 text-black bg-white transition"
+                placeholder="residents@peppertree.com"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-slate-700 font-semibold mb-3 text-lg font-playfair">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-5 py-4 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 text-lg text-black bg-white transition duration-300"
-              placeholder="Enter password"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-slate-800 font-bold mb-2 text-xs uppercase tracking-widest font-cinzel">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-400 text-black bg-white transition"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-slate-700 hover:bg-slate-800 text-white font-semibold py-5 px-5 rounded-lg focus:outline-none shadow-md text-xl font-playfair tracking-wider transition-all duration-300 transform hover:-translate-y-1"
-          >
-            Log In
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-slate-800 hover:bg-slate-900 text-white font-cinzel font-bold tracking-widest py-4 rounded-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 mt-4"
+            >
+              Sign In
+            </button>
+          </form>
+        </div>
       </div>
 
       <style jsx global>{`
-        /* Importing both Luxurious Roman and Playfair Display from Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Luxurious+Roman&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-
-        .font-luxurious {
-          font-family: 'Luxurious Roman', serif;
-        }
-
-        .font-playfair {
-          font-family: 'Playfair Display', serif;
-        }
-
-        .max-height-0 {
-          max-height: 0;
-          opacity: 0;
-        }
-
-        .max-height-wipe-in {
-          animation: verticalWipeIn 1s ease-out forwards;
-        }
-
-        @keyframes verticalWipeIn {
-          0% {
-            max-height: 0;
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          100% {
-            max-height: 700px;
-            opacity: 1;
-            transform: translateY(0);
-          }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+        .font-cinzel {
+          font-family: 'Cinzel', serif;
         }
       `}</style>
     </div>
